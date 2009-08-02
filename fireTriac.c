@@ -33,8 +33,10 @@ void fireTriac(void)
 	timer2SetPrescaler(TIMERRTC_CLK_DIV1024);
 
 	//stop & reset timer0
-	timer0SetPrescaler(TIMER_CLK_STOP);
-	TCNT0 = 0;
+//	timer0SetPrescaler(TIMER_CLK_STOP);
+//	TCNT0 = 0;
+	timer1SetPrescaler(TIMER_CLK_STOP);
+	TCNT1 = 0;
 
 #ifdef TESTMODE
     static uint8_t direction;
@@ -42,12 +44,14 @@ void fireTriac(void)
     switch (direction)
     {
         case UP:
-            if (++OCR0A == PHASE_ANGLE_LIMIT_HIGH)
+//            if (++OCR0A == PHASE_ANGLE_LIMIT_HIGH)
+            if ((OCR1A+=75) > PHASE_ANGLE_LIMIT_HIGH)
                 direction = DOWN;
             break;
 
         case DOWN:
-            if (--OCR0A == PHASE_ANGLE_LIMIT_LOW)
+//            if (--OCR1A == PHASE_ANGLE_LIMIT_LOW)
+            if ((OCR1A-=75) < PHASE_ANGLE_LIMIT_LOW)
                 direction = UP;
             break;
     }

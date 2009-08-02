@@ -53,9 +53,10 @@ SIGNAL (SIG_INTERRUPT0)
 
 #endif
 	//zero cross happened, start timer
-	timer0SetPrescaler(TIMER_CLK_DIV1024);
+	//timer0SetPrescaler(TIMER_CLK_DIV1024);
+	timer1SetPrescaler(TIMER_CLK_DIV8);
 
-	//( & update global delay variable used by timer?)
+	//debug
 	PIND |= BV(PD5);
 
 	return;

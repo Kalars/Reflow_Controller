@@ -12,6 +12,15 @@
 #include "zerocross.h"
 #include "fireTriac.h"
 
+#ifdef REG_PID
+	#include "pid.h"
+#endif
+#ifdef REG_PD
+	#include "pd.h"
+#endif
+
+
+
 #ifdef DEBUG_SER
 	#include "vt100.h"		// include VT100 terminal support
 	#include "rprintf.h"	// include printf function library
@@ -62,19 +71,63 @@ static void avr_init(void);
 //void incAngle(void);
 
 u08 sensorDisconnected;		//global variable, extern -> global.h
+
+s16 _DTERM;
+s16 _PTERM;
+s16 _ERROR;
+s16 _DUMMY;
 static u16 tempData;
 
 
+
+//SPid PID_data;
+static SPd PD_data;
+
+	u08 actualTemp;
+	u08 command;
+	u16 output;
 
 int main(void)
 {
     avr_init();
 
+
     u16 i;
+
+	command = 250;
+	actualTemp = 85;
+
+	u16 temp;
     for(;;)
     {
         // Tasks here.
+	
 
+#ifdef DEBUG_SIM
+	tempData = actualTemp;
+#endif
+
+
+#ifdef REG_PID	
+		output = UpdatePID(&PID_data, command - tempData, tempData );
+#endif
+#ifdef REG_PD
+		output = UpdatePD(&PD_data, command - tempData, tempData);
+#endif
+//		actualTemp +=10;
+//		OCR0A = output;
+
+		output <=8;
+
+/*
+		if((temp = 0xFFFF-output) > 30000)
+		{	temp = 30000;}
+		else if (temp < 1000)
+		{	temp = 1000;}
+*/
+		if(output > 30000)
+		{	output = 30000;}
+		OCR1A = output;
 
 		readMAX6675(&tempData);		// get data to tempData variable
 #ifndef DEBUG_SIM
@@ -95,9 +148,31 @@ int main(void)
 	else
 	{
 		rprintf("temp: ");
-		rprintfNum(10, 4,  FALSE, ' ',   tempData);
+		rprintfNum(10, 4,  FALSE, ' ',   tempData);		rprintfCRLF();
+
+		rprintf("PD out: ");
+		rprintfNum(10, 6,  FALSE, ' ',   output);		rprintfCRLF();
+
+		rprintf("OCR1A: ");
+		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
+
+//-----------
+		rprintf("dummy: ");
+		rprintfNum(10, 6,  TRUE, ' ',   _DUMMY);		rprintfCRLF();
+
+		rprintf("Error: ");
+		rprintfNum(10, 4,  TRUE, ' ',   _ERROR);		rprintfCRLF();
+
+		rprintf("Dterm: ");
+		rprintfNum(10, 8,  TRUE, ' ',   _DTERM);		rprintfCRLF();
+
+		rprintf("Pterm: ");
+		rprintfNum(10, 8,  TRUE, ' ',   _PTERM);		rprintfCRLF();
+//-----------
+
 	}
-	rprintf("\r");
+	vt100SetCursorPos(0, 0);
+
 
 
 #endif
@@ -106,27 +181,8 @@ int main(void)
     return(0);
 }
 
-/*
-void incAngle(void)
-// invoked on timer1 output compareA
-{
-    static uint8_t direction;
 
-    switch (direction)
-    {
-        case UP:
-            if (++OCR0A == PHASE_ANGLE_LIMIT_HIGH)
-                direction = DOWN;
-            break;
 
-        case DOWN:
-            if (--OCR0A == PHASE_ANGLE_LIMIT_LOW)
-                direction = UP;
-            break;
-    }
-
-}
-*/
 
 static void avr_init(void)
 // Initializes AVR controller
@@ -138,26 +194,35 @@ static void avr_init(void)
 
 	initTriac();							//init Triac pin & direction
 
+
+#ifdef REG_PID
+//	initPID(&PID_data, 1, 0, 10, 10, -10);
+
+#endif
+#ifdef REG_PD
+	initPD(&PD_data, 800, 1000);
+#endif
+
+
 	//attach functions to timer interrupts
-	timerAttach(TIMER0OUTCOMPAREA_INT, fireTriac);
+//	timerAttach(TIMER0OUTCOMPAREA_INT, fireTriac);
 	timerAttach(TIMER2OUTCOMPAREA_INT, stopTriac);
-//	timerAttach(TIMER1OUTCOMPAREA_INT, incAngle);
+	timerAttach(TIMER1OUTCOMPAREA_INT, fireTriac);
 
 	//enable output compare for timers
-	sbi(TIMSK0, OCIE0A);
-//	sbi(TIMSK1, OCIE1A);
+//	sbi(TIMSK0, OCIE0A);
+	sbi(TIMSK1, OCIE1A);
 	sbi(TIMSK2, OCIE2A);
 
 	//set OCR values. 
-	OCR0A = PHASE_ANGLE_LIMIT_HIGH;				//firing angle of triac
+//	OCR0A = PHASE_ANGLE_LIMIT_HIGH;				//firing angle of triac
 	OCR2A = 1;									//length of firing pulse
-//	OCR1A = 100;								//temperature sample frequency
+	OCR1A = 30500;								//temperature sample frequency
 
 //	timer1SetPrescaler(TIMER_CLK_DIV1024);		//start temp. sampling
 
 
 #ifndef DEBUG_SIM
-
 	#ifdef DEBUG_SER
 	// initialize the UART (serial port)
 	uartInit();
@@ -170,15 +235,17 @@ static void avr_init(void)
 
 	// print a little intro message so we know things are working
 	rprintf("Reflow!\r\n");
+
+	vt100ClearScreen	  ();
 	#endif
 
 	// initialize SPI interface
 	spiInit();
-
 #endif
 	//enable interrupts
 	sei();
-	  
+
+
     return;
 }
     
