@@ -9,6 +9,7 @@
 extern u08 sensorDisconnected;
 extern s16 _DTERM;
 extern s16 _PTERM;
+extern s16 _ITERM;
 extern s16 _ERROR;
 extern s16 _DUMMY;
 
@@ -28,4 +29,17 @@ extern s16 _DUMMY;
 	#undef DEBUG_SER
 #endif
 
-#define REG_PD
+#define REG_PID
+
+#define P_FACTOR	500
+#define I_FACTOR	2
+#define D_FACTOR	4000
+
+
+#define DO_SAMPLE				0
+#define DO_PID					1
+#define SAMPLE_STATUS_REG		EEARL
+#define SET_SAMPLE_FLAG			sbi(SAMPLE_STATUS_REG,DO_SAMPLE)
+#define CLEAR_SAMPLE_FLAG		cbi(SAMPLE_STATUS_REG,DO_SAMPLE)
+#define SET_PID_FLAG			sbi(SAMPLE_STATUS_REG,DO_PID)
+#define CLEAR_PID_FLAG			cbi(SAMPLE_STATUS_REG,DO_PID)

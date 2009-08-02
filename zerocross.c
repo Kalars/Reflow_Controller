@@ -55,9 +55,10 @@ SIGNAL (SIG_INTERRUPT0)
 	//zero cross happened, start timer
 	//timer0SetPrescaler(TIMER_CLK_DIV1024);
 	timer1SetPrescaler(TIMER_CLK_DIV8);
+	
+	//set flag to update PID loop
+	SET_PID_FLAG;
 
-	//debug
-	PIND |= BV(PD5);
 
 	return;
 }
