@@ -1,5 +1,5 @@
-#ifndef MAX6675_DEFS
-#define MAX6675_DEFS
+#ifndef MAX6675_H
+#define MAX6675_H
 
 
 
@@ -22,8 +22,8 @@
 
 
 //u16 readMAX6675(void);
-void readMAX6675(u16 *data);
-
+//void readMAX6675(u16 *data);
+s08 readMAX6675(u16 *data);
 
 
 

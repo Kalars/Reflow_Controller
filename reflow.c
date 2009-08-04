@@ -10,7 +10,7 @@
 #include "timerx8.h"		// include timer support
 #include "MAX6675.h"
 #include "zerocross.h"
-#include "fireTriac.h"
+#include "Triac.h"
 
 #ifdef REG_PID
 	#include "pid.h"

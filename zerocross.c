@@ -1,7 +1,7 @@
 /************************************************************
  * Hardware fires the interrupt as a rising edge when AC-line
- * passes zero, both directions (pos to neg and neg to pos)
- * 
+ * passes zero, both directions (pos to neg and neg to pos) verified?
+ * Make document with screenshot.
  *
  *
  *
@@ -27,26 +27,25 @@
 #include "global.h"
 
 
-
-
 void initZerocross(void)
 {
 #ifdef DEBUG_SIM
 
 #endif
-	DDRD |= BV(PD5);
-
-	//DDRD |= BV(PD2);					// INT0 = input
+	DDRD |= BV(PD5);					// set as input
 	//setup INT0 to fire on rising edge:
 	EICRA |= BV(ISC00) | BV(ISC01);		//set sense control, fire on rising edge of INT0
 	EIMSK |= BV(INT0);					//enable INT0
-
-
 
 	return;
 
 }
 
+/*********************************************************************
+ * Zerocross interrupt. This interrupt starts a timer. 
+ * When the timer reaches it output compare value the TRIAC is fired
+ * The TRIAC is conducting until the end of the AC-line reaches 0V
+ *********************************************************************/
 SIGNAL (SIG_INTERRUPT0)
 {
 #ifdef DEBUG_SIM

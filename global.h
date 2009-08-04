@@ -21,9 +21,10 @@ extern s16 _DUMMY;
 #define PHASE_ANGLE_LIMIT_LOW	700			//4
 
 
-//#define TESTMODE
+//#define WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
+#define WALK_PHASEANGLE_STEP	75			// stepsize in timerticks for phaseangle autoincrement
 
-//#define DEBUG_SIM
+//#define DEBUG_SIM							// Skip some code (UART/SPI mostly) that does not work in the simulator
 
 #ifdef DEBUG_SIM
 	#undef DEBUG_SER
@@ -34,7 +35,6 @@ extern s16 _DUMMY;
 #define P_FACTOR	500
 #define I_FACTOR	2
 #define D_FACTOR	4000
-
 
 #define DO_SAMPLE				0
 #define DO_PID					1
