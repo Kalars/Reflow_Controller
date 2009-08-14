@@ -13,11 +13,6 @@
  *
  * \author               Atmel Corporation: http://www.atmel.com \n
  *                       Support email: avr@atmel.com
- *
- * $Name$
- * $Revision: 456 $
- * $RCSfile$
- * $Date: 2006-02-16 12:46:13 +0100 (to, 16 feb 2006) $
  *****************************************************************************/
 
 #include "pid.h"

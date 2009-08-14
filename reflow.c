@@ -98,7 +98,7 @@ int main(void)
 
 //    u16 i;
 
-	command = 100;
+	command = 101;
 //	actualTemp = 85;
 
 //	u16 temp;
@@ -279,6 +279,12 @@ static void avr_init(void)
 
 	timer0SetPrescaler(TIMER_CLK_DIV1024);		//start temp. sampling
 
+/*************************************** 
+  * Timer0 runs at 24Mhz/1024 = 
+  *
+  * 
+  *
+  ***************************************/
 
 #ifndef DEBUG_SIM
 	#ifdef DEBUG_SER
@@ -286,7 +292,7 @@ static void avr_init(void)
 	uartInit();
 
 	// set the baud rate of the UART for our debug/reporting output
-	uartSetBaudRate(115200);
+	uartSetBaudRate(9600);
 
 	// make all rprintf statements use uart for output
 	rprintfInit(uartSendByte);
@@ -294,7 +300,12 @@ static void avr_init(void)
 	// print a little intro message so we know things are working
 	rprintf("Reflow!\r\n");
 
-	vt100ClearScreen	  ();
+//	vt100SetCursorMode(1);
+//	vt100SetAttr(VT100_BLINK_OFF);
+//	vt100SetAttr(VT100_USCORE_OFF);
+//	vt100SetAttr(VT100_REVERSE);
+
+	vt100ClearScreen();
 	#endif
 
 	// initialize SPI interface
@@ -313,12 +324,22 @@ void sample(void)
 {
 
 
-	if(timer0GetOverflowCount() == 17)
-	{
-		//set sample flag and reset overflow counter
-	
-	timer0ClearOverflowCount();	///< Clear timer0's overflow counter. 	
-	SET_SAMPLE_FLAG;
+	if(timer0GetOverflowCount() == 17){		// After 17 overflows we set a flag that will tell main() to read the
+											// Temperature off the MAX6675
+	timer0ClearOverflowCount();				// Clear timer0's overflow counter. 	
+	SET_SAMPLE_FLAG;						//set sample flag and reset overflow counter
 	}
+	//vt100SetAttr(VT100_REVERSE_OFF);
+	/*
+	#define VT100_ATTR_OFF		0
+#define VT100_BOLD			1
+#define VT100_USCORE		4
+#define VT100_BLINK			5
+#define VT100_REVERSE		7
+#define VT100_BOLD_OFF		21
+#define VT100_USCORE_OFF	24
+#define VT100_BLINK_OFF		25
+#define VT100_REVERSE_OFF	27
+*/
 
 }
