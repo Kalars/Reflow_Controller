@@ -1,4 +1,4 @@
-/*! \file timerx8.h \brief Timer function library for ATmegaXX8 Processors. */
+ /*! \file timerx8.h \brief Timer function library for ATmegaXX8 Processors. */
 //*****************************************************************************
 //
 // File Name	: 'timerx8.h'

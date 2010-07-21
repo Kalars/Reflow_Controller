@@ -50,10 +50,10 @@
  * add SPI interface - DONE!
  * add UART interface - DONE!
  *
- * -write driver for MAX6675 - to be tested, hardware no complete yet
+ * -write driver for MAX6675 - to be tested, hardware no complete yet -Done!
  * 		6675 max conversin time = 220mS
  *
- * -implement zeroCross & test - not complete, w.f. hardware (optocoupler)
+ * -implement zeroCross & test - not complete, w.f. hardware (optocoupler) -Done!
  *
  * -implement timing delay. See motorola doc on triac pulses.
  *		-The closer to zerocross you get the longer pulse is needed 
@@ -64,7 +64,7 @@
 
 //delay definition (MAX6675 read frequency) for debugging.
 #define DELAY	300
-
+//#define RX_DBG
 
 
 static void avr_init(void);
@@ -80,6 +80,10 @@ s16 _DTERM;
 s16 _ERROR;
 s16 _DUMMY;
 static u16 tempData;
+u32 skips;
+u32 skipcounter;			// used by app to skip x amount of cycles. ex: if(!(skipcounter % 3)){fire;}
+
+//char app_status;
 
 
 
@@ -89,16 +93,16 @@ static pidData_t PID_data;
 	u08 actualTemp;
 	u08 command;
 	s16 output;
-	u08 RXdata;
+	//u08 RS232data;
 
 int main(void)
 {
     avr_init();
-
+u08 even;
 
 //    u16 i;
-
-	command = 101;
+//u08 temp;
+	command = 60;
 //	actualTemp = 85;
 
 //	u16 temp;
@@ -106,12 +110,17 @@ int main(void)
     {
         // Tasks here.
 
-		if (uartReceiveByte(&RXdata))
-		{	//reset integrator
- 			if(RXdata == 13)
+/*
+		if (uartReceiveByte(&RS232data)){	//reset integrator
+			rprintfChar(RS232data);
+ 			if(RS232data == 13)
 			PID_data.sumError = 0;
+		}else{
+			if(uartReceiveBufferIsEmpty()){
+				rprintf("buf empty");
+			}
 		}
-
+*/
 	
 
 	#ifdef DEBUG_SIM
@@ -119,14 +128,21 @@ int main(void)
 	#endif
 
 
-	if(SAMPLE_STATUS_REG & BV(DO_PID))
+	if(APP_STATUS_REG & BV(DO_PID))
 	{
 		#ifdef REG_PID	
 		//update PID
 		output = pid_Controller(command, tempData, &PID_data);
-
+#ifndef RX_DBG
+		rprintf("PID raw: ");
+		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
+#endif
 		//invert PID
 		output = PHASE_ANGLE_LIMIT_HIGH - output;
+#ifndef RX_DBG
+		rprintf("PID scaled: ");
+		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
+#endif
 		#endif
 
 		#ifdef REG_PD
@@ -147,12 +163,12 @@ int main(void)
 */
 
 
-	if (SAMPLE_STATUS_REG & BV(DO_SAMPLE))
+	if (APP_STATUS_REG & BV(DO_SAMPLE))
 	{
 		readMAX6675(&tempData);		// get data to tempData variable
 		CLEAR_SAMPLE_FLAG;
-	//debug
-	PIND |= BV(PD5);
+	//debug, invert pin
+	PIND ^= BV(PD5);
 
 
 	//update PID
@@ -162,50 +178,56 @@ int main(void)
 //	output = PHASE_ANGLE_LIMIT_HIGH - output;
 	}
 
-
-
-		rprintf("PID out: ");
-		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
-
-
-
 //		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
 
 
 
 //		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
 
-	if((output > PHASE_ANGLE_LIMIT_HIGH) || (output < 0))
-	{	output = PHASE_ANGLE_LIMIT_HIGH;}
+	if((output > PHASE_ANGLE_LIMIT_HIGH) || (output < 0)){
+#ifndef RX_DBG
+		rprintf("Max out");rprintfCRLF();
+#endif
+		output = PHASE_ANGLE_LIMIT_HIGH;
+	}
 	
-	else if ((output < PHASE_ANGLE_LIMIT_LOW))// || (output < 0))
-	{	output = PHASE_ANGLE_LIMIT_LOW;}
+	else if ((output < PHASE_ANGLE_LIMIT_LOW)){// || (output < 0))
+#ifndef RX_DBG
+		rprintf("Min out");rprintfCRLF();
+#endif
+		output = PHASE_ANGLE_LIMIT_LOW;
+	}
 
 
 
-	OCR1A = output;
-
-
+	OCR1A = PHASE_ANGLE_LIMIT_LOW;
+//OCR1A = PHASE_ANGLE_LIMIT_HIGH;
+#ifndef WALK_PHASEANGLE
+		//OCR1A = output;
+#endif
 
 #ifdef DEBUG_SER
 //	uartPrintfNum(10, 6,  TRUE, ' ',   1234);  -->  " +1234"
 //	uartPrintfNum(16, 6, FALSE, '.', 0x5AA5);  -->  "..5AA5"
 
 //	rprintfNum(10, 4,  FALSE, ' ',   tempData);//		rprintfCRLF();
-
+#ifndef RX_DBG
 	if(sensorDisconnected)
 	{
 		rprintfProgStrM("Disconnected Probe!\r\n");
 	}
 	else
 	{
-//		rprintf("temp: ");
+		rprintf("Process Value: ");
 		rprintfNum(10, 4,  FALSE, ' ',   tempData);		rprintfCRLF();
 
-//		rprintf("PID out: ");
-//		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
+		rprintf("Target Value: ");
+		rprintfNum(10, 4,  FALSE, ' ',   command);		rprintfCRLF();
 
-//		rprintf("OCR1A: ");
+		rprintf("PID Phaselimit: ");
+		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
+
+		rprintf("OCR1A: ");
 		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
 
 //-----------
@@ -228,8 +250,11 @@ int main(void)
 	}
 
 	vt100SetCursorPos(0, 0);
-
-
+	if(even++ == 10){
+		vt100ClearScreen();
+		even = 0;
+	}
+#endif //#ifndef RX_DBG
 
 #endif
     }
@@ -292,7 +317,7 @@ static void avr_init(void)
 	uartInit();
 
 	// set the baud rate of the UART for our debug/reporting output
-	uartSetBaudRate(9600);
+	uartSetBaudRate(57600);
 
 	// make all rprintf statements use uart for output
 	rprintfInit(uartSendByte);
@@ -311,6 +336,10 @@ static void avr_init(void)
 	// initialize SPI interface
 	spiInit();
 #endif
+
+//	SET_HALF_PHASE;
+	SET_SKIP_PHASE;
+	skips = 15;
 	//enable interrupts
 	sei();
 
@@ -322,7 +351,7 @@ static void avr_init(void)
     
 void sample(void)
 {
-
+//vt100ClearScreen();
 
 	if(timer0GetOverflowCount() == 17){		// After 17 overflows we set a flag that will tell main() to read the
 											// Temperature off the MAX6675

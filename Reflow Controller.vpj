@@ -4,7 +4,8 @@
 	VendorName="SlickEdit"
 	WorkingDir="."
 	BuildSystem="vsbuild"
-	BuildMakeFile="">
+	BuildMakeFile=""
+	VCSProject="Git:">
 	<Config
 		Name="Debug"
 		Type="cpp"
@@ -31,8 +32,8 @@
 				MenuCaption="&amp;Build"
 				CaptureOutputWith="ProcessBuffer"
 				SaveOption="SaveWorkspaceFiles"
-				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+				RunFromDir="%rp">
+				<Exec CmdLine="make all"/>
 			</Target>
 			<Target
 				Name="Rebuild"
@@ -88,8 +89,8 @@
 				MenuCaption="&amp;Build"
 				CaptureOutputWith="ProcessBuffer"
 				SaveOption="SaveWorkspaceFiles"
-				RunFromDir="%rw">
-				<Exec CmdLine='"%(VSLICKBIN1)vsbuild" build "%w" "%r"'/>
+				RunFromDir="%rp">
+				<Exec CmdLine="make all"/>
 			</Target>
 			<Target
 				Name="Rebuild"
@@ -145,6 +146,7 @@
 				Recurse="0"
 				Refilter="0"
 				Excludes=""/>
+			<F N="kalarstimer.h"/>
 		</Folder>
 		<Folder
 			Name="Resource Files"
@@ -157,6 +159,9 @@
 			Filters="">
 			<F N=".gitignore"/>
 			<F N="Doxyfile"/>
+			<F
+				N="default/Makefile"
+				Type="Makefile"/>
 		</Folder>
 	</Files>
 </Project>

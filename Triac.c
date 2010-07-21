@@ -8,7 +8,7 @@ enum { DOWN, UP };
 void initTriac(void)
 {
 	STOP_TRIAC;										// set TriacPin High (Gate off)
-	cbi(TRIAC_DDR,TRIAC_PIN);						// set Triac Pin to output (0)
+	sbi(TRIAC_DDR,TRIAC_PIN);						// set Triac Pin to output (1)
 }
 
 
@@ -36,13 +36,17 @@ void fireTriac(void)
     switch (direction)
     {
         case UP:
-            if((OCR1A+=WALK_PHASEANGLE_STEP) > PHASE_ANGLE_LIMIT_HIGH)
+            if((OCR1A+WALK_PHASEANGLE_STEP) > PHASE_ANGLE_LIMIT_HIGH)
                 direction = DOWN;
+            else
+                OCR1A += WALK_PHASEANGLE_STEP;
             break;
 
         case DOWN:
-            if((OCR1A-=WALK_PHASEANGLE_STEP) < PHASE_ANGLE_LIMIT_LOW)
+            if((OCR1A-WALK_PHASEANGLE_STEP) < PHASE_ANGLE_LIMIT_LOW)
                 direction = UP;
+            else
+                OCR1A -= WALK_PHASEANGLE_STEP;
             break;
     }
 #endif

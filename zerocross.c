@@ -51,13 +51,32 @@ SIGNAL (SIG_INTERRUPT0)
 #ifdef DEBUG_SIM
 
 #endif
+//    static u08 skipcounter;
+	skipcounter++;
+
+    static u08 even = 0;
+
 	//zero cross happened, start timer
 	//timer0SetPrescaler(TIMER_CLK_DIV1024);
-	timer1SetPrescaler(TIMER_CLK_DIV8);
+    if (APP_STATUS_REG & BV(HALF_PHASE)){
+        if(even){                                  // only fire every other half-period (only positive or negative phase)
+            timer1SetPrescaler(TIMER_CLK_DIV8);
+            even = 0;
+        }else{
+            even = 1;
+        }
+        
+    }else if(!(APP_STATUS_REG & BV(SKIP_PHASE))){
+        timer1SetPrescaler(TIMER_CLK_DIV8);
+    }else
+    
+    if(!(skipcounter % skips)) {
+        timer1SetPrescaler(TIMER_CLK_DIV8);
+    }
+        
 	
 	//set flag to update PID loop
 	SET_PID_FLAG;
-
 
 	return;
 }
