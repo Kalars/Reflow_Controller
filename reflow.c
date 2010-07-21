@@ -110,24 +110,6 @@ u08 even;
     {
         // Tasks here.
 
-/*
-		if (uartReceiveByte(&RS232data)){	//reset integrator
-			rprintfChar(RS232data);
- 			if(RS232data == 13)
-			PID_data.sumError = 0;
-		}else{
-			if(uartReceiveBufferIsEmpty()){
-				rprintf("buf empty");
-			}
-		}
-*/
-	
-
-	#ifdef DEBUG_SIM
-		tempData = actualTemp;
-	#endif
-
-
 	if(APP_STATUS_REG & BV(DO_PID))
 	{
 		#ifdef REG_PID	
@@ -170,7 +152,6 @@ u08 even;
 	//debug, invert pin
 	PIND ^= BV(PD5);
 
-
 	//update PID
 //	output = pid_Controller(command, tempData, &PID_data);
 
@@ -178,12 +159,10 @@ u08 even;
 //	output = PHASE_ANGLE_LIMIT_HIGH - output;
 	}
 
-//		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
 
 
 
-//		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
-
+// Limit to within 1 half-phase:
 	if((output > PHASE_ANGLE_LIMIT_HIGH) || (output < 0)){
 #ifndef RX_DBG
 		rprintf("Max out");rprintfCRLF();
@@ -200,10 +179,12 @@ u08 even;
 
 
 
-	OCR1A = PHASE_ANGLE_LIMIT_LOW;
+//OCR1A = PHASE_ANGLE_LIMIT_LOW;
 //OCR1A = PHASE_ANGLE_LIMIT_HIGH;
+
+
 #ifndef WALK_PHASEANGLE
-		//OCR1A = output;
+		OCR1A = output;
 #endif
 
 #ifdef DEBUG_SER
@@ -300,7 +281,7 @@ static void avr_init(void)
 	//set OCR values. 
 //	OCR0A = PHASE_ANGLE_LIMIT_HIGH;				//firing angle of triac
 	OCR2A = 1;									//length of firing pulse
-	OCR1A = 30500;								//temperature sample frequency
+	OCR1A = PHASE_ANGLE_LIMIT_HIGH;				//temperature sample frequency
 
 	timer0SetPrescaler(TIMER_CLK_DIV1024);		//start temp. sampling
 
@@ -338,8 +319,8 @@ static void avr_init(void)
 #endif
 
 //	SET_HALF_PHASE;
-	SET_SKIP_PHASE;
-	skips = 15;
+//	SET_SKIP_PHASE;
+//	skips = 15;
 	//enable interrupts
 	sei();
 

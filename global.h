@@ -23,13 +23,14 @@ extern u32 skips;
 
 #define CYCLES_PER_US ((F_CPU+500000)/1000000) 	// cpu cycles per microsecond
 
-#define PHASE_ANGLE_LIMIT_HIGH	30500		//236
-#define PHASE_ANGLE_LIMIT_LOW	4//700			//4
+//#define PHASE_ANGLE_LIMIT_HIGH	30500		//236
+#define PHASE_ANGLE_LIMIT_HIGH	30400
+#define PHASE_ANGLE_LIMIT_LOW	700			//4
 
 
 #define WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
 #undef WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
-#define WALK_PHASEANGLE_STEP	75			// stepsize in timerticks for phaseangle autoincrement
+#define WALK_PHASEANGLE_STEP	500			// stepsize in timerticks for phaseangle autoincrement
 
 //#define DEBUG_SIM							// Skip some code (UART/SPI mostly) that does not work in the simulator
 
@@ -39,9 +40,9 @@ extern u32 skips;
 
 #define REG_PID
 
-#define P_FACTOR	500
+#define P_FACTOR	(500 * 2)
 #define I_FACTOR	2
-#define D_FACTOR	4000
+#define D_FACTOR	(4000 * 2)
 char app_status;
 #define DO_SAMPLE				0   // flag, should we sample this time around in the main loop?
 #define DO_PID					1

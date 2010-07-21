@@ -29,7 +29,7 @@ void fireTriac(void)
 	timer1SetPrescaler(TIMER_CLK_STOP);				// stop & reset the timer that called this function
 	TCNT1 = 0;
 
-#ifdef WALK_PHASEANGLE										// Testmode changes the phase-angle by 75 timerticks every time the triac fires
+#ifdef WALK_PHASEANGLE								// Testmode changes the phase-angle by 75 timerticks every time the triac fires
     static uint8_t direction;						// It will increment until it reaches the limit and then start decrementing, until 
 													// it reaches the other limit
 
