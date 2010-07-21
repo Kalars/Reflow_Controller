@@ -40,7 +40,7 @@ extern u32 skips;
 
 #define REG_PID
 
-#define P_FACTOR	(500 * 2)
+#define P_FACTOR	1200
 #define I_FACTOR	2
 #define D_FACTOR	(4000 * 2)
 char app_status;
