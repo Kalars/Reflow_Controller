@@ -24,8 +24,13 @@ extern u32 skips;
 #define CYCLES_PER_US ((F_CPU+500000)/1000000) 	// cpu cycles per microsecond
 
 //#define PHASE_ANGLE_LIMIT_HIGH	30500		//236
-#define PHASE_ANGLE_LIMIT_HIGH	30400
-#define PHASE_ANGLE_LIMIT_LOW	700			//4
+#define PHASE_ANGLE_LIMIT_HIGH	30400			// end of ac-cyle, this mmeans no output (off)
+#define PHASE_ANGLE_LIMIT_LOW	700				// start of ac-cyle, this mmeans full output (on)
+
+#define MIN_ENERGY_OUTPUT	PHASE_ANGLE_LIMIT_HIGH
+#define MAX_ENERGY_OUTPUT	PHASE_ANGLE_LIMIT_LOW
+
+#define PHASE_RESOLUTION (PHASE_ANGLE_LIMIT_HIGH - PHASE_ANGLE_LIMIT_LOW)
 
 
 #define WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
@@ -34,9 +39,11 @@ extern u32 skips;
 
 //#define DEBUG_SIM							// Skip some code (UART/SPI mostly) that does not work in the simulator
 
+//#define CMDLINE
 #ifdef DEBUG_SIM
 	#undef DEBUG_SER
 #endif
+
 
 #define REG_PID
 
@@ -48,6 +55,7 @@ char app_status;
 #define DO_PID					1
 #define HALF_PHASE              2
 #define SKIP_PHASE				3
+#define HOLD_FIRE               4
 
 #define APP_STATUS_REG          app_status		
 
@@ -61,5 +69,8 @@ char app_status;
 
 #define SET_SKIP_PHASE          sbi(APP_STATUS_REG,SKIP_PHASE)
 #define CLEAR_SKIP_PHASE        cbi(APP_STATUS_REG,SKIP_PHASE)
+
+#define SET_HOLD_FIRE          sbi(APP_STATUS_REG,HOLD_FIRE)
+#define CLEAR_HOLD_FIRE        cbi(APP_STATUS_REG,HOLD_FIRE)
 
 #endif	// GLOBAL_H_INCLUDED

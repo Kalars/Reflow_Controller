@@ -146,6 +146,8 @@
 				Recurse="0"
 				Refilter="0"
 				Excludes=""/>
+			<F N="cmdline.h"/>
+			<F N="cmdlineconf.h"/>
 			<F N="kalarstimer.h"/>
 		</Folder>
 		<Folder
@@ -162,6 +164,7 @@
 			<F
 				N="default/Makefile"
 				Type="Makefile"/>
+			<F N="default/todo.txt"/>
 		</Folder>
 	</Files>
 </Project>

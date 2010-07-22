@@ -23,33 +23,36 @@ void initTriac(void)
  **************************************************************/
 void fireTriac(void)
 {
-	FIRE_TRIAC;										// turn on Triac Gate
-	timer2SetPrescaler(TIMERRTC_CLK_DIV1024);		// start timer2, when it expires turn off triac gate. This determines the Gate pulselength.
-
-	timer1SetPrescaler(TIMER_CLK_STOP);				// stop & reset the timer that called this function
-	TCNT1 = 0;
+    if (!(APP_STATUS_REG & BV(HOLD_FIRE)))
+	{
+        FIRE_TRIAC;										// turn on Triac Gate
+    	timer2SetPrescaler(TIMERRTC_CLK_DIV1024);		// start timer2, when it expires turn off triac gate. This determines the Gate pulselength.
+    
+    	timer1SetPrescaler(TIMER_CLK_STOP);				// stop & reset the timer that called this function
+    	TCNT1 = 0;
 
 #ifdef WALK_PHASEANGLE								// Testmode changes the phase-angle by 75 timerticks every time the triac fires
-    static uint8_t direction;						// It will increment until it reaches the limit and then start decrementing, until 
-													// it reaches the other limit
-
-    switch (direction)
-    {
-        case UP:
-            if((OCR1A+WALK_PHASEANGLE_STEP) > PHASE_ANGLE_LIMIT_HIGH)
-                direction = DOWN;
-            else
-                OCR1A += WALK_PHASEANGLE_STEP;
-            break;
-
-        case DOWN:
-            if((OCR1A-WALK_PHASEANGLE_STEP) < PHASE_ANGLE_LIMIT_LOW)
-                direction = UP;
-            else
-                OCR1A -= WALK_PHASEANGLE_STEP;
-            break;
-    }
+        static uint8_t direction;						// It will increment until it reaches the limit and then start decrementing, until 
+    													// it reaches the other limit
+    
+        switch (direction)
+        {
+            case UP:
+                if((OCR1A+WALK_PHASEANGLE_STEP) > PHASE_ANGLE_LIMIT_HIGH)
+                    direction = DOWN;
+                else
+                    OCR1A += WALK_PHASEANGLE_STEP;
+                break;
+    
+            case DOWN:
+                if((OCR1A-WALK_PHASEANGLE_STEP) < PHASE_ANGLE_LIMIT_LOW)
+                    direction = UP;
+                else
+                    OCR1A -= WALK_PHASEANGLE_STEP;
+                break;
+        }
 #endif
+    }
 }
 
 /**************************************************************
