@@ -1,0 +1,6 @@
+Change calcs to use float (double) (room in flash?, link with 'libm'
+
+USe decimals of temp-samples.
+Use the Derivative term with the decimals to make use of it every PID-loop even 
+when the delta-difference is less than 1 degree, this should help in
+large deltas as well as small. Retriming of the konstant is certainly required.
