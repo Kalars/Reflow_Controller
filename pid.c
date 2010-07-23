@@ -29,7 +29,7 @@
  *  \param d_factor  Derivate term.
  *  \param pid  Struct with PID status.
  */
-void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_DATA *pid)
+void pid_Init(double p_factor, double i_factor, double d_factor, struct PID_DATA *pid)
 // Set up PID controller parameters
 {
   // Start values for PID controller
@@ -53,10 +53,10 @@ void pid_Init(int16_t p_factor, int16_t i_factor, int16_t d_factor, struct PID_D
  *  \param processValue  Measured value.
  *  \param pid_st  PID status struct.
  */
-int16_t pid_Controller(int16_t setPoint, int16_t processValue, struct PID_DATA *pid_st)
+int16_t pid_Controller(double setPoint, double processValue, struct PID_DATA *pid_st)
 {
-  int16_t error, p_term, d_term;
-  int32_t i_term, ret, temp;
+  double error, p_term, d_term;
+  double i_term, ret, temp;
 
   error = setPoint - processValue;
 

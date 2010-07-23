@@ -13,17 +13,18 @@
 
 #define MAX6675_MASK_SENSOR_CONNECTED	0x04
 #define MAX6675_DATA_INTEGER			0x7FE0
+#define MSK_MAX6675_DATA_DECIMAL        0x0018
 #define MAX6675_DATA_FULL				0x7FF8
 
 #define ENABLE_6675		cbi(MAX6675S_PORT,MAX6675_CSPIN)
 #define DISABLE_6675	sbi(MAX6675S_PORT,MAX6675_CSPIN)
 
-#define MAX6675_INTEGER
+//#define MAX6675_INTEGER
 
 
 //u16 readMAX6675(void);
 //void readMAX6675(u16 *data);
-s08 readMAX6675(u16 *data);
+s08 readMAX6675(double *data);
 
 
 

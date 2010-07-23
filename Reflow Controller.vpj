@@ -137,6 +137,7 @@
 				Recurse="0"
 				Refilter="0"
 				Excludes=""/>
+			<F N="debug_VT100.c"/>
 		</Folder>
 		<Folder
 			Name="Header Files"
@@ -148,6 +149,7 @@
 				Excludes=""/>
 			<F N="cmdline.h"/>
 			<F N="cmdlineconf.h"/>
+			<F N="debug_VT100.h"/>
 			<F N="kalarstimer.h"/>
 		</Folder>
 		<Folder

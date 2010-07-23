@@ -3,6 +3,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 //#include "Ext\Extentions.h" /* Extentions library file */
+#include <stdio.h>
 
 #include "global.h"
 
@@ -75,13 +76,13 @@ void set_target_temp(void);
 
 u08 sensorDisconnected;		//global variable, extern via global.h
 
-s16 _PTERM;
-s16 _ITERM;
-s16 _DTERM;
+double _PTERM;
+double _ITERM;
+double _DTERM;
 
-s16 _ERROR;
-s16 _DUMMY;
-static u16 tempData;
+double _ERROR;
+double _DUMMY;
+static double tempData;
 u32 skips;
 u32 skipcounter;			// used by app to skip x amount of cycles. ex: if(!(skipcounter % 3)){fire;}
 u08 c;
@@ -93,57 +94,37 @@ u08 c;
 //SPid PID_data;
 static pidData_t PID_data;
 
-	u16 actualTemp;
-	u16 command;
-	s16 output;
+	double actualTemp;
+	double command;
+	double output;
 	//u08 RS232data;
 
 int main(void)
 {
+    u08 even;
+    command = 100;
     avr_init();
-u08 even;
 
-//    u16 i;
-//u08 temp;
-	command = 45;
-//	actualTemp = 85;
-
-//	u16 temp;
     for(;;)
     {
         // Tasks here.
-        // Command line reception of commands...
-		// pass characters received on the uart (serial port)
-		// into the cmdline processor
-//        while(uartReceiveByte(&c)){
-//        vt100SetCursorPos(1, 0);
-//        uartSendByte(c);
-//        cmdlineInputFunc(c);
-//
-//        }
-        // bounce the character, keep to the top 3 rows...
-
-		// run the cmdline execution functions
        	vt100SetCursorPos(3, 0);
-		cmdlineMainLoop();
-        // Command line reception ends here
 
-
-
-    	if (APP_STATUS_REG & BV(DO_SAMPLE))
+        if (APP_STATUS_REG & BV(DO_SAMPLE))
     	{
     		readMAX6675(&tempData);		// get data to tempData variable
     		CLEAR_SAMPLE_FLAG;
-    	//debug, invert pin
-    	PIND ^= BV(PD5);
+    	
+            PIND ^= BV(PD5);    //debug, invert pin every sample
     
+#ifdef PID_SYNC_TO_SAMPLE
     	//update PID
-    //	output = pid_Controller(command, tempData, &PID_data);
+    	output = pid_Controller(command, tempData, &PID_data);
     
     	//invert PID
-    //	output = PHASE_ANGLE_LIMIT_HIGH - output;
-    	}
-
+        //output = PHASE_ANGLE_LIMIT_HIGH - output;
+#endif
+        }
 
     	if(APP_STATUS_REG & BV(DO_PID))
     	{
@@ -214,10 +195,6 @@ u08 even;
 
 
 #ifdef DEBUG_SER
-//	uartPrintfNum(10, 6,  TRUE, ' ',   1234);  -->  " +1234"
-//	uartPrintfNum(16, 6, FALSE, '.', 0x5AA5);  -->  "..5AA5"
-
-//	rprintfNum(10, 4,  FALSE, ' ',   tempData);//		rprintfCRLF();
 #ifndef CMDLINE
 #ifndef RX_DBG
 
@@ -227,36 +204,26 @@ u08 even;
         	}
         	else
         	{
-
-            rprintf("Process Value: ");
-    		rprintfNum(10, 4,  FALSE, ' ',   tempData);		rprintfCRLF();
+                rprintf("Process Value: ");
+                rprintfFloat(5, tempData);  rprintfCRLF();
     
-    		rprintf("Target Value: ");
-    		rprintfNum(10, 4,  FALSE, ' ',   command);		rprintfCRLF();
+        		rprintf("Target Value: ");
+                rprintfFloat(5, command);  rprintfCRLF();
     
-    //  	rprintf("PID Phaselimit: ");
-    //  	rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
+        		rprintf("OCR1A: ");
+        		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
     
-    		rprintf("OCR1A: ");
-    		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
-    
-            //-----------
-    //		rprintf("dummy: ");
-    //		rprintfNum(10, 6,  TRUE, ' ',   _DUMMY);		rprintfCRLF();
-    
-    		rprintf("E ");
-    		rprintfNum(10, 4,  TRUE, ' ',   _ERROR);		rprintfCRLF();
-    
-    		rprintf("P ");
-    		rprintfNum(10, 8,  TRUE, ' ',   _PTERM);		rprintfCRLF();
-    
-    		rprintf("I ");
-    		rprintfNum(10, 8,  TRUE, ' ',   _ITERM);		rprintfCRLF();
-    
-    		rprintf("D ");
-    		rprintfNum(10, 8,  TRUE, ' ',   _DTERM);		rprintfCRLF();
-    //-----------
-    
+        		rprintf("E ");
+                rprintfFloat(5, _ERROR);  rprintfCRLF();
+                    
+        		rprintf("P ");
+                rprintfFloat(5, _PTERM);  rprintfCRLF();
+                    
+        		rprintf("I ");
+                rprintfFloat(5, _ITERM);  rprintfCRLF();
+                    
+        		rprintf("D ");
+                rprintfFloat(5, _DTERM);  rprintfCRLF();
             }
     
         	vt100SetCursorPos(3, 0);
@@ -274,66 +241,6 @@ u08 even;
 }
 
 
-
-void goCmdline(void)
-{
-//	u08 c;
-//
-//    // print welcome message
-//    vt100ClearScreen();
-//    vt100SetCursorPos(1,0);
-//    rprintfProgStrM("\r\nWelcome to the Command Line Test Suite!\r\n");
-//
-//    // initialize cmdline system
-//    cmdlineInit();
-//
-//    // direct cmdline output to uart (serial port)
-//    cmdlineSetOutputFunc(uartSendByte);
-//
-//    // add commands to the command database
-//    cmdlineAddCommand("temp",       set_target_temp);
-////  cmdlineAddCommand("help",		helpFunction);
-////  cmdlineAddCommand("dumpargs1",	dumpArgsStr);
-////  cmdlineAddCommand("dumpargs2",	dumpArgsInt);
-////  cmdlineAddCommand("dumpargs3",	dumpArgsHex);
-//
-//    // send a CR to cmdline input to stimulate a prompt
-//    cmdlineInputFunc('\r');
-//
-//    // set state to run
-////	Run = TRUE;
-//
-//    // main loop
-////  while(Run)
-////  {
-////  	// pass characters received on the uart (serial port)
-////  	// into the cmdline processor
-////  	while(uartReceiveByte(&c)) cmdlineInputFunc(c);
-////
-////  	// run the cmdline execution functions
-////  	cmdlineMainLoop();
-////  }
-////
-////  rprintfCRLF();
-////  rprintf("Exited program!\r\n");
-}
-
-void set_target_temp(void)
-{
-//    rprintfCRLF();
-//    rprintf("Set new target temperature:\r\n");
-//
-//    // printf %d will work but only if your numbers are less than 16-bit values
-//    //rprintf("Arg1 as int: %d\r\n", cmdlineGetArgInt(1));
-//    //rprintf("Arg2 as int: %d\r\n", cmdlineGetArgInt(2));
-//    //rprintf("Arg3 as int: %d\r\n", cmdlineGetArgInt(3));
-//
-//    // printfNum is good for longs too
-//    rprintf("Arg1 as int: "); rprintfNum(10, 10, TRUE, ' ', cmdlineGetArgInt(1)); rprintfCRLF();
-////  rprintf("Arg2 as int: "); rprintfNum(10, 10, TRUE, ' ', cmdlineGetArgInt(2)); rprintfCRLF();
-////  rprintf("Arg3 as int: "); rprintfNum(10, 10, TRUE, ' ', cmdlineGetArgInt(3)); rprintfCRLF();
-//    rprintfCRLF();
-}
 
 
 static void avr_init(void)

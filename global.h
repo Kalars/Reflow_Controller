@@ -10,11 +10,11 @@
 #include "avrlibtypes.h"
 
 extern u08 sensorDisconnected;
-extern s16 _DTERM;
-extern s16 _PTERM;
-extern s16 _ITERM;
-extern s16 _ERROR;
-extern s16 _DUMMY;
+extern double _DTERM;
+extern double _PTERM;
+extern double _ITERM;
+extern double _ERROR;
+extern double _DUMMY;
 
 extern u32 skipcounter;
 extern u32 skips;
@@ -26,6 +26,7 @@ extern u32 skips;
 //#define PHASE_ANGLE_LIMIT_HIGH	30500		//236
 #define PHASE_ANGLE_LIMIT_HIGH	30400			// end of ac-cyle, this mmeans no output (off)
 #define PHASE_ANGLE_LIMIT_LOW	700				// start of ac-cyle, this mmeans full output (on)
+#define RESOLUTION  ( PHASE_ANGLE_LIMIT_HIGH - PHASE_ANGLE_LIMIT_LOW )
 
 #define MIN_ENERGY_OUTPUT	PHASE_ANGLE_LIMIT_HIGH
 #define MAX_ENERGY_OUTPUT	PHASE_ANGLE_LIMIT_LOW
@@ -35,32 +36,36 @@ extern u32 skips;
 
 #define WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
 #undef WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
-#define WALK_PHASEANGLE_STEP	500			// stepsize in timerticks for phaseangle autoincrement
+#define WALK_PHASEANGLE_STEP	500		// stepsize in timerticks for phaseangle autoincrement
 
-//#define DEBUG_SIM							// Skip some code (UART/SPI mostly) that does not work in the simulator
+//#define DEBUG_SIM						// Skip some code (UART/SPI mostly) that does not work in the simulator
 
 //#define CMDLINE
 #ifdef DEBUG_SIM
 	#undef DEBUG_SER
 #endif
 
+#define RPRINTF_FLOAT
 
-#define REG_PID
+#define REG_PID                     // Use PID regulator
+//#define REG_PD                    // Use PD regulator
 
-#define P_FACTOR	1200
-#define I_FACTOR	2
-#define D_FACTOR	(4000 * 2)
-char app_status;
-#define DO_SAMPLE				0   // flag, should we sample this time around in the main loop?
-#define DO_PID					1
-#define HALF_PHASE              2
-#define SKIP_PHASE				3
-#define HOLD_FIRE               4
+#define P_FACTOR	1200.0
+#define I_FACTOR    3.2
+#define D_FACTOR	12000.35
 
-#define APP_STATUS_REG          app_status		
+char app_status;                // keep track of status using flags below
+#define APP_STATUS_REG          app_status
+#define DO_SAMPLE				0   // perform sampling
+#define DO_PID					1   // run PID loop
+#define HALF_PHASE              2   // use only upper or lower half of the phase
+#define SKIP_PHASE				3   // skip-phase mode
+#define HOLD_FIRE               4   // inhibit firing of triac
 
+// MAcros to set & clear flags
 #define SET_SAMPLE_FLAG			sbi(APP_STATUS_REG,DO_SAMPLE)
 #define CLEAR_SAMPLE_FLAG		cbi(APP_STATUS_REG,DO_SAMPLE)
+
 #define SET_PID_FLAG			sbi(APP_STATUS_REG,DO_PID)
 #define CLEAR_PID_FLAG			cbi(APP_STATUS_REG,DO_PID)
 
