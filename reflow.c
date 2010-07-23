@@ -118,11 +118,11 @@ int main(void)
             PIND ^= BV(PD5);    //debug, invert pin every sample
     
 #ifdef PID_SYNC_TO_SAMPLE
-    	//update PID
-    	output = pid_Controller(command, tempData, &PID_data);
+            //set flag to update PID loop
+            SET_PID_FLAG;
     
-    	//invert PID
-        //output = PHASE_ANGLE_LIMIT_HIGH - output;
+            //invert PID
+            //output = PHASE_ANGLE_LIMIT_HIGH - output;
 #endif
         }
 
@@ -131,7 +131,7 @@ int main(void)
     		#ifdef REG_PID	
     		//update PID
     		output = pid_Controller(command, tempData, &PID_data);
-#ifndef CMDLINE
+
     #ifndef RX_DBG
     		rprintf("PID raw: ");
     		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
@@ -143,7 +143,7 @@ int main(void)
     		rprintf("PID scaled: ");
     		rprintfNum(10, 6,  TRUE, ' ',   output);		rprintfCRLF();
     #endif
-#endif
+
     		#endif
     
     		#ifdef REG_PD
@@ -152,21 +152,10 @@ int main(void)
     //		actualTemp +=10;
     //		OCR0A = output;
     		CLEAR_PID_FLAG;
-    
-//    	}
-/*
-		if((temp = 0xFFFF-output) > 30000)
-		{	temp = 30000;}
-		else if (temp < 1000)
-		{	temp = 1000;}
-*/
-
     // Limit to within 1 half-phase:
     	if((output > PHASE_ANGLE_LIMIT_HIGH) || (output < 0)){
-#ifndef CMDLINE
 #ifndef RX_DBG
     		rprintf("Max out");rprintfCRLF();
-#endif
 #endif
     		output = PHASE_ANGLE_LIMIT_HIGH;	// don't fire the triac at all!
     		SET_HOLD_FIRE;						// set flag to not fire triac
@@ -177,25 +166,23 @@ int main(void)
     	}
     	
     	if ((output < PHASE_ANGLE_LIMIT_LOW)){  // || (output < 0))
-#ifndef CMDLINE
 #ifndef RX_DBG
     		rprintf("Min out");rprintfCRLF();
 #endif
-#endif
     		output = PHASE_ANGLE_LIMIT_LOW;		// fire the triac at zerocrozz to get complete halfwave
-    
     	}
 #ifndef WALK_PHASEANGLE
 		OCR1A = output;
+        vt100SetCursorPos(1, 0);
+        rprintf("OCR1A: ");
+        rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
+        vt100SetCursorPos(3, 0);
 #endif
-		//OCR1A = PHASE_ANGLE_LIMIT_LOW;
-		//OCR1A = PHASE_ANGLE_LIMIT_HIGH;
-	}
+        }   
 
 
 
 #ifdef DEBUG_SER
-#ifndef CMDLINE
 #ifndef RX_DBG
 
             if(sensorDisconnected)
@@ -210,8 +197,8 @@ int main(void)
         		rprintf("Target Value: ");
                 rprintfFloat(5, command);  rprintfCRLF();
     
-        		rprintf("OCR1A: ");
-        		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
+ //       		rprintf("OCR1A: ");
+ //       		rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
     
         		rprintf("E ");
                 rprintfFloat(5, _ERROR);  rprintfCRLF();
@@ -229,18 +216,17 @@ int main(void)
         	vt100SetCursorPos(3, 0);
         	if(even++ == 10){
         		vt100ClearScreen();
+                vt100SetCursorPos(1, 0);
+                rprintf("OCR1A: ");
+                rprintfNum(10, 6,  FALSE, ' ',   OCR1A);	rprintfCRLF();
                 vt100SetCursorPos(3,0);
         		even = 0;
         	}
 #endif //#ifndef RX_DBG
-#endif //#ifndef CMDLINE
 #endif //#ifdef DEBUG_SER
     }
-    
     return(0);
 }
-
-
 
 
 static void avr_init(void)
@@ -277,7 +263,7 @@ static void avr_init(void)
 	//set OCR values. 
 //	OCR0A = PHASE_ANGLE_LIMIT_HIGH;				//firing angle of triac
 	OCR2A = 1;									//length of firing pulse
-	OCR1A = PHASE_ANGLE_LIMIT_HIGH;				//temperature sample frequency
+	OCR1A = PHASE_ANGLE_LIMIT_HIGH;				//triac off
 
 	timer0SetPrescaler(TIMER_CLK_DIV1024);		//start temp. sampling
 

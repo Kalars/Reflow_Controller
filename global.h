@@ -33,6 +33,7 @@ extern u32 skips;
 
 #define PHASE_RESOLUTION (PHASE_ANGLE_LIMIT_HIGH - PHASE_ANGLE_LIMIT_LOW)
 
+#define PID_SYNC_TO_SAMPLE
 
 #define WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
 #undef WALK_PHASEANGLE					// Autoincrements phaseangle, for debug / finding limits
@@ -50,8 +51,8 @@ extern u32 skips;
 #define REG_PID                     // Use PID regulator
 //#define REG_PD                    // Use PD regulator
 
-#define P_FACTOR	1200.0
-#define I_FACTOR    3.2
+#define P_FACTOR	1800.5
+#define I_FACTOR    0.035           // 2.5
 #define D_FACTOR	12000.35
 
 char app_status;                // keep track of status using flags below

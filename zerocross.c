@@ -44,7 +44,7 @@ void initZerocross(void)
 /*********************************************************************
  * Zerocross interrupt. This interrupt starts a timer. 100Hz
  * When the timer reaches it output compare value the TRIAC is fired
- * The TRIAC is conducting until the end of the AC-line reaches 0V
+ * The TRIAC is conducting until the AC-line crosses 0V
  *********************************************************************/
 SIGNAL (SIG_INTERRUPT0)
 {
@@ -75,8 +75,9 @@ SIGNAL (SIG_INTERRUPT0)
     }
         
 	
+#ifndef PID_SYNC_TO_SAMPLE    	
 	//set flag to update PID loop
 	SET_PID_FLAG;
-
+#endif
 	return;
 }
